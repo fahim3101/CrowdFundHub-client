@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-paper text-ink font-body;
+}
+
+h1, h2, h3, h4 {
+  @apply font-display;
+}
+
+/* Tabular figures everywhere money/credits are shown */
+.figures {
+  @apply font-mono tabular-nums;
+}
+
+/* ---- Signature element: the progress rule ----
+   A thick two-tone bar used as a section marker AND as the literal
+   funding-progress indicator on campaign cards. Same motif, two jobs. */
+.progress-rule {
+  @apply relative h-[6px] w-full rounded-full bg-mist overflow-hidden;
+}
+.progress-rule > span {
+  @apply absolute inset-y-0 left-0 rounded-full bg-gold;
+  transition: width 0.6s ease;
+}
+
+.progress-rule-lg {
+  @apply relative h-[10px] w-full rounded-full bg-mist overflow-hidden;
+}
+.progress-rule-lg > span {
+  @apply absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-gold-dark to-gold;
+  transition: width 0.6s ease;
+}
+
+/* Small underline mark used after section eyebrows/titles */
+.rule-mark {
+  @apply inline-block h-[4px] w-12 rounded-full bg-gold mt-3;
+}
+
+::selection {
+  background-color: #D9A441;
+  color: #10231C;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid #1F5C4E;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Hero entrance animation — plays once on page load */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-in {
+  animation: fadeInUp 0.9s ease-out both;
+}
+.animate-hero-in-delay {
+  animation: fadeInUp 0.9s ease-out 0.15s both;
+}

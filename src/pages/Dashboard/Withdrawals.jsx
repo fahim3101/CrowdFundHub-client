@@ -1,0 +1,135 @@
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import useAuth from '../../hooks/useAuth';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+
+const CREDITS_PER_DOLLAR = 20;
+const MIN_CREDITS = 200;
+
+const Withdrawals = () => {
+  const { user } = useAuth();
+  const axiosSecure = useAxiosSecure();
+  const [totalRaised, setTotalRaised] = useState(0);
+  const [credits, setCredits] = useState('');
+  const [paymentSystem, setPaymentSystem] = useState('bkash');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    axiosSecure.get(`/campaigns/creator/${user.email}`).then((res) => {
+      const raised = res.data.reduce((sum, c) => sum + (c.amount_raised || 0), 0);
+      setTotalRaised(raised);
+      setLoading(false);
+    });
+  }, [user, axiosSecure]);
+
+  const dollarAmount = credits ? (Number(credits) / CREDITS_PER_DOLLAR).toFixed(2) : '0.00';
+  const canWithdraw = totalRaised >= MIN_CREDITS;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await axiosSecure.post('/withdrawals', {
+        creator_email: user.email,
+        creator_name: user.displayName,
+        withdrawal_credit: Number(credits),
+        payment_system: paymentSystem,
+        account_number: accountNumber,
+      });
+      toast.success('Withdrawal request submitted');
+      setCredits('');
+      setAccountNumber('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not submit withdrawal');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return null;
+
+  return (
+    <div className="mx-auto max-w-lg">
+      <h1 className="text-2xl font-semibold text-ink">Withdrawals</h1>
+      <p className="mt-1 text-sm text-ink/55">20 credits = $1. Minimum withdrawal is 200 credits ($10).</p>
+
+      <div className="mt-6 rounded-2xl border border-mist bg-white p-6">
+        <p className="text-sm text-ink/50">Total raised across your campaigns</p>
+        <p className="figures mt-1 text-3xl font-semibold text-pine">{totalRaised} credits</p>
+        <p className="figures mt-1 text-sm text-ink/50">≈ ${(totalRaised / CREDITS_PER_DOLLAR).toFixed(2)} withdrawable</p>
+      </div>
+
+      {!canWithdraw ? (
+        <p className="mt-6 rounded-xl bg-mist px-4 py-3 text-center text-sm text-ink/60">
+          You need at least {MIN_CREDITS} credits raised before you can request a withdrawal.
+        </p>
+      ) : (
+        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+          <div>
+            <label className="text-sm font-medium text-ink/80">Credits to withdraw</label>
+            <input
+              type="number"
+              required
+              min={MIN_CREDITS}
+              max={totalRaised}
+              value={credits}
+              onChange={(e) => setCredits(e.target.value)}
+              className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-ink/80">Withdraw amount ($)</label>
+            <input
+              disabled
+              value={dollarAmount}
+              className="figures mt-1 w-full rounded-lg border border-mist bg-mist px-4 py-2.5 text-sm text-ink/60"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-ink/80">Payment system</label>
+            <select
+              value={paymentSystem}
+              onChange={(e) => setPaymentSystem(e.target.value)}
+              className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
+            >
+              <option value="bkash">Bkash</option>
+              <option value="rocket">Rocket</option>
+              <option value="nagad">Nagad</option>
+              <option value="stripe">Stripe</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-ink/80">Account number</label>
+            <input
+              required
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              placeholder="01XXXXXXXXX"
+              className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
+            />
+          </div>
+
+          {Number(credits) > totalRaised ? (
+            <p className="text-center text-sm text-brick">Insufficient credit</p>
+          ) : (
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-full bg-pine px-6 py-3 text-sm font-semibold text-paper transition hover:bg-pine-dark disabled:opacity-60"
+            >
+              {submitting ? 'Submitting…' : 'Withdraw'}
+            </button>
+          )}
+        </form>
+      )}
+    </div>
+  );
+};
+
+export default Withdrawals;
