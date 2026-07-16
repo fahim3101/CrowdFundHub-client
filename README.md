@@ -16,10 +16,10 @@
 | | |
 |---|---|
 | 🔗 Live Site | https://crowd-fund-hub-client.vercel.app |
-| 🔗 Server Repository | _paste your server GitHub repo link here_ |
+| 🔗 Server Repository | https://github.com/fahim3101/CrowdFundHub-server |
 | 🔗 Server API | https://crowd-fund-hub-server.vercel.app |
-| 🔐 Admin Email | _paste the admin email here_ |
-| 🔐 Admin Password | _paste the admin password here_ |
+| 🔐 Admin Email | admin@gmail.com |
+| 🔐 Admin Password | Admin123 |
 
 ## ✨ Features
 
@@ -87,7 +87,7 @@ client/
 
 ## ⚙️ Environment Variables
 
-Create a `.env` file (see `.env.example`):
+Create a `.env` file:
 
 ```dotenv
 VITE_apiKey=
