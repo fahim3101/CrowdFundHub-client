@@ -41,7 +41,6 @@ const AuthProvider = ({ children }) => {
       if (!isMounted) return;
 
       setUser(currentUser);
-      console.log('Auth state changed:', currentUser?.email);
 
       if (currentUser?.email) {
         try {
@@ -61,12 +60,7 @@ const AuthProvider = ({ children }) => {
             });
           } catch (roleErr) {
             if (roleErr.response?.status === 404) {
-              // Brand-new Firebase login (e.g. just after Google sign-in before the
-              // Register flow has POSTed /users) — the auth state is real but the
-              // DB row hasn't been written yet. Don't wipe role/credits to null/0
-              // here; that would race with the explicit registration call that
-              // will set them moments later via refreshRole(). Just unblock loading.
-              console.warn('User record not found in DB yet; will be created by auth flow');
+              // Brand-new Firebase login — DB row not written yet.
               if (isMounted) setLoading(false);
               return;
             }
@@ -76,10 +70,8 @@ const AuthProvider = ({ children }) => {
           if (isMounted) {
             setRole(roleRes.data.role);
             setCredits(roleRes.data.credits);
-            console.log('Role loaded:', roleRes.data.role);
           }
         } catch (err) {
-          console.error('Failed to load session:', err.message);
           // Keep existing role/credits on error to prevent refresh loop
           if (isMounted) {
             setLoading(false);
@@ -96,7 +88,6 @@ const AuthProvider = ({ children }) => {
 
       if (isMounted) {
         setLoading(false);
-        console.log('Loading set to false');
       }
     });
 
@@ -109,10 +100,14 @@ const AuthProvider = ({ children }) => {
   const refreshCredits = async () => {
     if (!user?.email) return;
     const token = localStorage.getItem('access-token');
-    const res = await axios.get(`${API_URL}/users/role/${user.email}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setCredits(res.data.credits);
+    try {
+      const res = await axios.get(`${API_URL}/users/role/${user.email}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCredits(res.data.credits);
+    } catch {
+      // silent: navbar keeps old value
+    }
   };
 
   // Re-fetch the user's role from the DB. Call this after explicit
@@ -130,7 +125,7 @@ const AuthProvider = ({ children }) => {
       setCredits(res.data.credits);
     } catch (err) {
       if (err.response?.status !== 404) {
-        console.error('Failed to refresh role:', err.message);
+        // silent except real errors
       }
     }
   };

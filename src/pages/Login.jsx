@@ -8,7 +8,7 @@ import useAuth from '../hooks/useAuth';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Login = () => {
-  const { loginWithEmail, loginWithGoogle } = useAuth();
+  const { loginWithEmail, loginWithGoogle, refreshRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
@@ -47,10 +47,8 @@ const Login = () => {
       const result = await loginWithGoogle();
       const user = result.user;
 
-      // Wait a moment for Firebase auth state to propagate
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       // register-if-new: server no-ops if this email already has an account
+      // (and never overwrites role for existing users)
       await axios.post(`${API_URL}/users`, {
         name: user.displayName,
         email: user.email,
@@ -58,13 +56,12 @@ const Login = () => {
         role: 'supporter',
       });
 
-      // Wait for AuthContext to fetch role
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Pull fresh role instead of setTimeout hacks
+      await refreshRole(user.email);
 
       toast.success('Welcome back!');
       navigate(from, { replace: true });
     } catch (err) {
-      console.error('Google login error:', err);
       toast.error(err.response?.data?.message || 'Google sign-in failed');
     } finally {
       setLoading(false);

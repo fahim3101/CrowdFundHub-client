@@ -42,8 +42,6 @@ const Register = () => {
     const password = form.password.value;
     const role = form.role.value;
 
-    console.log('Registering with role:', role);
-
     const pwIssue = passwordIssue(password);
     if (pwIssue) return setError(pwIssue);
 
@@ -64,17 +62,14 @@ const Register = () => {
 
       // Create user in MongoDB - this MUST succeed before continuing
       try {
-        console.log('Creating user in MongoDB with role:', role);
-        const userRes = await axios.post(`${API_URL}/users`, {
+        await axios.post(`${API_URL}/users`, {
           name,
           email,
           photoURL,
           role,
         });
-        console.log('MongoDB user created:', userRes.data);
       } catch (dbErr) {
         // If MongoDB user creation fails, delete the Firebase user to prevent orphan accounts
-        console.error('Failed to create user in DB:', dbErr);
         await result.user.delete();
         throw new Error('Failed to create account. Please try again.');
       }
@@ -86,7 +81,6 @@ const Register = () => {
       await refreshRole(email);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      console.error('Registration error:', err);
       // Check for Firebase auth errors first
       if (err.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists');
@@ -126,7 +120,6 @@ const Register = () => {
       toast.success('Welcome to CrowdFundHub!');
       navigate('/dashboard');
     } catch (err) {
-      console.error('Google register error:', err);
       toast.error(err.response?.data?.message || 'Google sign-in failed');
     } finally {
       setLoading(false);
