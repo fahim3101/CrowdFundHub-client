@@ -13,21 +13,29 @@ const ExploreCampaigns = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const category = searchParams.get('category') || 'all';
   const sort = searchParams.get('sort') || '';
+
+  // Debounce typing so we don't DDoS the API on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (search) params.set('search', search);
+    if (debouncedSearch) params.set('search', debouncedSearch);
     if (category !== 'all') params.set('category', category);
     if (sort) params.set('sort', sort);
 
     axios
       .get(`${import.meta.env.VITE_API_URL}/campaigns?${params.toString()}`)
       .then((res) => setCampaigns(res.data))
+      .catch(() => setCampaigns([]))
       .finally(() => setLoading(false));
-  }, [search, category, sort]);
+  }, [debouncedSearch, category, sort]);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8">

@@ -20,9 +20,11 @@ const CampaignDetails = () => {
   const [reportReason, setReportReason] = useState('');
 
   const fetchCampaign = () => {
+    setLoading(true);
     axios
       .get(`${import.meta.env.VITE_API_URL}/campaigns/${id}`)
       .then((res) => setCampaign(res.data))
+      .catch(() => setCampaign(null))
       .finally(() => setLoading(false));
   };
 
@@ -35,11 +37,16 @@ const CampaignDetails = () => {
   if (!campaign) return <p className="py-24 text-center text-ink/50">Campaign not found.</p>;
 
   const percent = Math.min(100, Math.round(((campaign.amount_raised || 0) / campaign.funding_goal) * 100));
+  const isExpired = campaign.deadline && campaign.deadline < new Date().toISOString().slice(0, 10);
+  const isAccepting = campaign.status === 'approved' && !isExpired;
 
   const handleContribute = async (e) => {
     e.preventDefault();
     const value = Number(amount);
 
+    if (!Number.isInteger(value) || value <= 0) {
+      return toast.error('Enter a valid credit amount');
+    }
     if (value < campaign.minimum_contribution) {
       return toast.error(`Minimum contribution is ${campaign.minimum_contribution} credits`);
     }
@@ -58,6 +65,7 @@ const CampaignDetails = () => {
       toast.success('Contribution submitted — waiting on the creator to approve it');
       setAmount('');
       refreshCredits();
+      fetchCampaign();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not submit contribution');
     } finally {
@@ -153,7 +161,13 @@ const CampaignDetails = () => {
           </div>
 
           <div className="mt-6 border-t border-mist pt-6">
-            {!user ? (
+            {!isAccepting ? (
+              <p className="text-center text-sm text-ink/50">
+                {isExpired
+                  ? 'This campaign has expired.'
+                  : `This campaign is ${campaign.status} and not accepting contributions right now.`}
+              </p>
+            ) : !user ? (
               <div className="text-center">
                 <p className="text-sm text-ink/60">Log in as a supporter to contribute.</p>
                 <Link to="/login" className="mt-3 block rounded-full bg-pine px-4 py-2.5 text-center text-sm font-semibold text-paper">
