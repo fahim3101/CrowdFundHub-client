@@ -102,7 +102,11 @@ const CampaignDetails = () => {
       <img
         src={campaign.campaign_image_url}
         alt={campaign.campaign_title}
-        className="mt-8 h-72 w-full rounded-2xl object-cover sm:h-96"
+        onError={(e) => {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = `https://picsum.photos/seed/${campaign._id}/1200/600`;
+        }}
+        className="mt-8 h-72 w-full rounded-2xl bg-mist object-cover sm:h-96"
       />
 
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">

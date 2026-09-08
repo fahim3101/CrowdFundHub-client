@@ -5,13 +5,16 @@ import useAuth from '../hooks/useAuth';
 import NotificationBell from './NotificationBell';
 import toast from 'react-hot-toast';
 
-const GITHUB_CLIENT_REPO = 'https://github.com/your-username/crowdfundhub-client';
+const GITHUB_CLIENT_REPO = 'https://github.com/fahim3101/CrowdFundHub-client';
 
 const Navbar = () => {
   const { user, credits, logOut } = useAuth();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const handleLogout = () => {
+    setProfileOpen(false);
+    setOpen(false);
     logOut()
       .then(() => toast.success('Logged out'))
       .catch(() => toast.error('Something went wrong'));
@@ -40,27 +43,40 @@ const Navbar = () => {
                 <Coins size={15} /> {credits}
               </span>
               <NotificationBell />
-              <div className="group relative">
-                {user.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName || 'User'}
-                    className="h-9 w-9 cursor-pointer rounded-full border-2 border-pine/30 object-cover"
-                  />
-                ) : (
-                  <div className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-2 border-pine/30 bg-mist text-sm font-semibold text-pine">
-                    {user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+              <div className="relative">
+                <button
+                  onClick={() => setProfileOpen((v) => !v)}
+                  onBlur={(e) => {
+                    if (!e.currentTarget.parentElement.contains(e.relatedTarget)) setProfileOpen(false);
+                  }}
+                  aria-haspopup="menu"
+                  aria-expanded={profileOpen}
+                  aria-label="Account menu"
+                  className="focus-ring block rounded-full"
+                >
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt={user.displayName || 'User'}
+                      className="h-9 w-9 rounded-full border-2 border-pine/30 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-pine/30 bg-mist text-sm font-semibold text-pine">
+                      {user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </button>
+                {profileOpen && (
+                  <div role="menu" className="absolute right-0 mt-2 w-44 rounded-xl border border-mist bg-white p-2 shadow-xl">
+                    <p className="truncate px-2 py-1 text-xs text-ink/50">{user.email}</p>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full rounded-lg px-2 py-1.5 text-left text-sm text-brick hover:bg-mist"
+                    >
+                      Log out
+                    </button>
                   </div>
                 )}
-                <div className="absolute right-0 mt-2 w-44 rounded-xl border border-mist bg-white p-2 opacity-0 shadow-xl transition-all duration-200 invisible group-hover:visible group-hover:opacity-100">
-                  <p className="truncate px-2 py-1 text-xs text-ink/50">{user.email}</p>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full rounded-lg px-2 py-1.5 text-left text-sm text-brick hover:bg-mist"
-                  >
-                    Log out
-                  </button>
-                </div>
               </div>
             </div>
           ) : (
@@ -79,13 +95,19 @@ const Navbar = () => {
             href={GITHUB_CLIENT_REPO}
             target="_blank"
             rel="noreferrer"
+            aria-label="CrowdFundHub client on GitHub"
             className="flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1.5 text-sm text-ink/70 transition hover:border-pine hover:text-pine"
           >
-            <Github size={15} /> Join as Developer
+            <Github size={15} /> GitHub
           </a>
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu">
+        <button
+          className="md:hidden"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          aria-label="Toggle menu"
+        >
           {open ? <X /> : <Menu />}
         </button>
       </nav>
@@ -107,7 +129,7 @@ const Navbar = () => {
               </>
             )}
             <a href={GITHUB_CLIENT_REPO} target="_blank" rel="noreferrer" className="text-sm text-ink/70">
-              Join as Developer
+              GitHub
             </a>
           </div>
         </div>

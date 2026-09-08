@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { Search } from 'lucide-react';
 import CampaignCard from '../components/CampaignCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import CampaignSkeleton from '../components/CampaignSkeleton';
 import SectionHeading from '../components/SectionHeading';
 
 const categories = ['all', 'Technology', 'Art', 'Community', 'Health', 'Environment', 'Education'];
@@ -76,7 +76,11 @@ const ExploreCampaigns = () => {
 
       <div className="mt-10">
         {loading ? (
-          <LoadingSpinner full={false} />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading campaigns">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CampaignSkeleton key={i} />
+            ))}
+          </div>
         ) : campaigns.length === 0 ? (
           <p className="py-16 text-center text-ink/50">No campaigns match your search yet.</p>
         ) : (

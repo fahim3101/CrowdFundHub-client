@@ -7,6 +7,8 @@ const daysLeft = (deadline) => {
   return days > 0 ? days : 0;
 };
 
+const fallbackImg = (id) => `https://picsum.photos/seed/${id || 'campaign'}/800/500`;
+
 const CampaignCard = ({ campaign }) => {
   const percent = Math.min(
     100,
@@ -15,10 +17,15 @@ const CampaignCard = ({ campaign }) => {
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-mist bg-white transition hover:-translate-y-1 hover:shadow-lg hover:shadow-pine/10">
-      <div className="relative h-44 overflow-hidden">
+      <div className="relative h-44 overflow-hidden bg-mist">
         <img
           src={campaign.campaign_image_url}
           alt={campaign.campaign_title}
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = fallbackImg(campaign._id);
+          }}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
         <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-paper">
