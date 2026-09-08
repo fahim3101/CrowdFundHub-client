@@ -17,11 +17,9 @@ axiosSecure.interceptors.request.use((config) => {
 axiosSecure.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't auto-redirect - let the component handle auth errors
-    // This prevents infinite loops during initial auth setup
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      console.warn('Auth error intercepted:', error.response?.status);
-    }
+    // Don't auto-redirect - let the component handle auth errors.
+    // This prevents infinite loops during initial auth setup.
+    // (Kept silent: nothing actionable to log for handled 401/403s.)
     return Promise.reject(error);
   }
 );
