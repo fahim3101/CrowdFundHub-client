@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 const CREDITS_PER_DOLLAR = 20;
 const MIN_CREDITS = 200;
@@ -10,6 +11,7 @@ const Withdrawals = () => {
   const { user } = useAuth();
   const axiosSecure = useAxiosSecure();
   const [totalRaised, setTotalRaised] = useState(0);
+  const [pendingSum, setPendingSum] = useState(0);
   const [credits, setCredits] = useState('');
   const [paymentSystem, setPaymentSystem] = useState('bkash');
   const [accountNumber, setAccountNumber] = useState('');
@@ -18,30 +20,52 @@ const Withdrawals = () => {
 
   useEffect(() => {
     if (!user?.email) return;
-    axiosSecure.get(`/campaigns/creator/${user.email}`).then((res) => {
-      const raised = res.data.reduce((sum, c) => sum + (c.amount_raised || 0), 0);
-      setTotalRaised(raised);
-      setLoading(false);
-    });
+    setLoading(true);
+    Promise.all([
+      axiosSecure.get(`/campaigns/creator/${user.email}`),
+      axiosSecure.get(`/withdrawals/creator/${user.email}`),
+    ])
+      .then(([campRes, withRes]) => {
+        const raised = campRes.data
+          .filter((c) => c.status === 'approved')
+          .reduce((sum, c) => sum + (c.amount_raised || 0), 0);
+        setTotalRaised(raised);
+        const pending = withRes.data
+          .filter((w) => w.status === 'pending')
+          .reduce((sum, w) => sum + (w.withdrawal_credit || 0), 0);
+        setPendingSum(pending);
+      })
+      .catch(() => toast.error('Could not load withdrawal info'))
+      .finally(() => setLoading(false));
   }, [user, axiosSecure]);
 
+  const available = totalRaised - pendingSum;
   const dollarAmount = credits ? (Number(credits) / CREDITS_PER_DOLLAR).toFixed(2) : '0.00';
-  const canWithdraw = totalRaised >= MIN_CREDITS;
+  const canWithdraw = available >= MIN_CREDITS;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const val = Number(credits);
+    if (!Number.isInteger(val) || val < MIN_CREDITS) {
+      return toast.error(`Minimum withdrawal is ${MIN_CREDITS} credits`);
+    }
+    if (val > available) {
+      return toast.error(`Insufficient available credit. Available: ${available}`);
+    }
+    if (!accountNumber.trim()) return toast.error('Account number is required');
     setSubmitting(true);
     try {
       await axiosSecure.post('/withdrawals', {
         creator_email: user.email,
         creator_name: user.displayName,
-        withdrawal_credit: Number(credits),
+        withdrawal_credit: val,
         payment_system: paymentSystem,
-        account_number: accountNumber,
+        account_number: accountNumber.trim(),
       });
       toast.success('Withdrawal request submitted');
       setCredits('');
       setAccountNumber('');
+      setPendingSum((s) => s + val);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Could not submit withdrawal');
     } finally {
@@ -49,7 +73,7 @@ const Withdrawals = () => {
     }
   };
 
-  if (loading) return null;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="mx-auto max-w-lg">
@@ -57,9 +81,11 @@ const Withdrawals = () => {
       <p className="mt-1 text-sm text-ink/55">20 credits = $1. Minimum withdrawal is 200 credits ($10).</p>
 
       <div className="mt-6 rounded-2xl border border-mist bg-white p-6">
-        <p className="text-sm text-ink/50">Total raised across your campaigns</p>
+        <p className="text-sm text-ink/50">Total raised across your approved campaigns</p>
         <p className="figures mt-1 text-3xl font-semibold text-pine">{totalRaised} credits</p>
-        <p className="figures mt-1 text-sm text-ink/50">≈ ${(totalRaised / CREDITS_PER_DOLLAR).toFixed(2)} withdrawable</p>
+        <p className="figures mt-1 text-sm text-ink/50">
+          Pending: {pendingSum} · Available: {available} (≈ ${((available || 0) / CREDITS_PER_DOLLAR).toFixed(2)})
+        </p>
       </div>
 
       {!canWithdraw ? (
@@ -74,7 +100,7 @@ const Withdrawals = () => {
               type="number"
               required
               min={MIN_CREDITS}
-              max={totalRaised}
+              max={available}
               value={credits}
               onChange={(e) => setCredits(e.target.value)}
               className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
@@ -115,8 +141,8 @@ const Withdrawals = () => {
             />
           </div>
 
-          {Number(credits) > totalRaised ? (
-            <p className="text-center text-sm text-brick">Insufficient credit</p>
+          {Number(credits) > available ? (
+            <p className="text-center text-sm text-brick">Insufficient available credit (pending: {pendingSum})</p>
           ) : (
             <button
               type="submit"

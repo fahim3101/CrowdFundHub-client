@@ -28,9 +28,12 @@ const CheckoutForm = ({ selectedPackage, onSuccess }) => {
 
   useEffect(() => {
     if (!selectedPackage) return;
+    setClientSecret('');
+    setError('');
     axiosSecure
       .post('/create-payment-intent', { price: selectedPackage.price })
-      .then((res) => setClientSecret(res.data.clientSecret));
+      .then((res) => setClientSecret(res.data.clientSecret))
+      .catch((err) => setError(err.response?.data?.message || 'Could not start payment. Try again.'));
   }, [selectedPackage, axiosSecure]);
 
   const handleSubmit = async (e) => {
@@ -55,15 +58,22 @@ const CheckoutForm = ({ selectedPackage, onSuccess }) => {
     }
 
     if (paymentIntent.status === 'succeeded') {
-      await axiosSecure.post('/payments', {
-        email: user.email,
-        price: selectedPackage.price,
-        credits: selectedPackage.credits,
-        transactionId: paymentIntent.id,
-      });
-      await refreshCredits();
-      toast.success(`${selectedPackage.credits} credits added to your account!`);
-      onSuccess();
+      try {
+        await axiosSecure.post('/payments', {
+          email: user.email,
+          price: selectedPackage.price,
+          credits: selectedPackage.credits,
+          transactionId: paymentIntent.id,
+        });
+        await refreshCredits();
+        toast.success(`${selectedPackage.credits} credits added to your account!`);
+        onSuccess();
+      } catch (saveErr) {
+        setError(
+          saveErr.response?.data?.message ||
+            `Payment succeeded (${paymentIntent.id}) but credit top-up failed. Contact support with this ID.`
+        );
+      }
     }
     setProcessing(false);
   };
