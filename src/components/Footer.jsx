@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Github, Linkedin, Facebook } from 'lucide-react';
+import { Github, Globe, Server } from 'lucide-react';
+
+const CLIENT_REPO = 'https://github.com/fahim3101/CrowdFundHub-client';
+const SERVER_REPO = 'https://github.com/fahim3101/CrowdFundHub-server';
+const LIVE_API = 'https://crowd-fund-hub-server.vercel.app';
 
 const Footer = () => {
   return (
@@ -18,15 +22,15 @@ const Footer = () => {
             </p>
           </div>
 
-          <div className="flex gap-4">
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="rounded-full border border-paper/15 p-2.5 transition hover:border-gold hover:text-gold">
-              <Linkedin size={18} />
-            </a>
-            <a href="https://facebook.com" target="_blank" rel="noreferrer" className="rounded-full border border-paper/15 p-2.5 transition hover:border-gold hover:text-gold">
-              <Facebook size={18} />
-            </a>
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="rounded-full border border-paper/15 p-2.5 transition hover:border-gold hover:text-gold">
+          <div className="flex gap-3">
+            <a href={CLIENT_REPO} target="_blank" rel="noreferrer" aria-label="Client repository on GitHub" title="Client repo" className="rounded-full border border-paper/15 p-2.5 transition hover:border-gold hover:text-gold">
               <Github size={18} />
+            </a>
+            <a href={SERVER_REPO} target="_blank" rel="noreferrer" aria-label="Server repository on GitHub" title="Server repo" className="rounded-full border border-paper/15 p-2.5 transition hover:border-gold hover:text-gold">
+              <Server size={18} />
+            </a>
+            <a href={LIVE_API} target="_blank" rel="noreferrer" aria-label="Live API" title="Live API" className="rounded-full border border-paper/15 p-2.5 transition hover:border-gold hover:text-gold">
+              <Globe size={18} />
             </a>
           </div>
         </div>

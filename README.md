@@ -84,6 +84,7 @@ client/
 | `/dashboard/supporter-home`, `/my-contributions`, `/purchase-credit`, `/payment-history` | Supporter dashboard |
 | `/dashboard/creator-home`, `/add-campaign`, `/my-campaigns`, `/withdrawals` | Creator dashboard |
 | `/dashboard/admin-home`, `/manage-users`, `/manage-campaigns`, `/withdrawal-requests`, `/reports` | Admin dashboard |
+| `/dashboard/profile` | My Profile — all roles (view + edit name/photo, role stats) |
 
 ## ⚙️ Environment Variables
 
