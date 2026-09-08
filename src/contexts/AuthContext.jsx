@@ -44,7 +44,8 @@ const AuthProvider = ({ children }) => {
 
       if (currentUser?.email) {
         try {
-          const tokenRes = await axios.post(`${API_URL}/jwt`, { email: currentUser.email });
+          const idToken = await currentUser.getIdToken();
+          const tokenRes = await axios.post(`${API_URL}/jwt`, { idToken });
           const token = tokenRes.data.token;
           localStorage.setItem('access-token', token);
 
