@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import {
   Home, Compass, HandCoins, Wallet, Receipt, PlusCircle, Layers, Landmark,
-  Users, Flag, ShieldAlert, Menu, X, Coins,
+  Users, Flag, Menu, X, Coins, UserRound,
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import NotificationBell from '../components/NotificationBell';
@@ -16,6 +16,7 @@ const navByRole = {
     { to: '/dashboard/my-contributions', label: 'My Contributions', icon: HandCoins },
     { to: '/dashboard/purchase-credit', label: 'Purchase Credit', icon: Wallet },
     { to: '/dashboard/payment-history', label: 'Payment History', icon: Receipt },
+    { to: '/dashboard/profile', label: 'My Profile', icon: UserRound },
   ],
   creator: [
     { to: '/dashboard/creator-home', label: 'Home', icon: Home },
@@ -23,6 +24,7 @@ const navByRole = {
     { to: '/dashboard/my-campaigns', label: 'My Campaigns', icon: Layers },
     { to: '/dashboard/withdrawals', label: 'Withdrawals', icon: Landmark },
     { to: '/dashboard/payment-history', label: 'Payment History', icon: Receipt },
+    { to: '/dashboard/profile', label: 'My Profile', icon: UserRound },
   ],
   admin: [
     { to: '/dashboard/admin-home', label: 'Home', icon: Home },
@@ -30,6 +32,7 @@ const navByRole = {
     { to: '/dashboard/manage-campaigns', label: 'Manage Campaigns', icon: Layers },
     { to: '/dashboard/withdrawal-requests', label: 'Withdrawal Requests', icon: Landmark },
     { to: '/dashboard/reports', label: 'Reports', icon: Flag },
+    { to: '/dashboard/profile', label: 'My Profile', icon: UserRound },
   ],
 };
 

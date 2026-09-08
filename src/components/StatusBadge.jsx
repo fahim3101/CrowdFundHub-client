@@ -4,6 +4,9 @@ const styles = {
   rejected: 'bg-brick/10 text-brick',
   suspended: 'bg-brick/10 text-brick',
   open: 'bg-gold/15 text-gold-dark',
+  supporter: 'bg-pine/10 text-pine',
+  creator: 'bg-gold/15 text-gold-dark',
+  admin: 'bg-ink text-paper',
 };
 
 const StatusBadge = ({ status }) => (

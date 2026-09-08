@@ -27,6 +27,7 @@ import ManageUsers from '../pages/Dashboard/ManageUsers';
 import ManageCampaigns from '../pages/Dashboard/ManageCampaigns';
 import WithdrawalRequests from '../pages/Dashboard/WithdrawalRequests';
 import Reports from '../pages/Dashboard/Reports';
+import Profile from '../pages/Dashboard/Profile';
 
 const router = createBrowserRouter([
   {
@@ -67,6 +68,9 @@ const router = createBrowserRouter([
 
       // Shared between supporter + creator
       { path: 'payment-history', element: <PaymentHistory /> },
+
+      // Shared by all roles
+      { path: 'profile', element: <Profile /> },
 
       // Admin
       { path: 'admin-home', element: <RoleRoute allowedRole="admin"><AdminHome /></RoleRoute> },
