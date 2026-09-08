@@ -10,21 +10,24 @@ const WithdrawalRequests = () => {
   const [loading, setLoading] = useState(true);
 
   const loadWithdrawals = () => {
-    axiosSecure.get('/withdrawals/pending').then((res) => {
-      setWithdrawals(res.data);
-      setLoading(false);
-    });
+    setLoading(true);
+    axiosSecure
+      .get('/withdrawals/pending')
+      .then((res) => setWithdrawals(res.data))
+      .catch(() => toast.error('Could not load withdrawals'))
+      .finally(() => setLoading(false));
   };
 
   useEffect(loadWithdrawals, [axiosSecure]);
 
   const handlePay = async (id) => {
+    if (!window.confirm('Mark this withdrawal as paid? This cannot be undone.')) return;
     try {
       await axiosSecure.patch(`/withdrawals/approve/${id}`);
       toast.success('Marked as paid');
       loadWithdrawals();
-    } catch {
-      toast.error('Could not process payment');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not process payment');
     }
   };
 

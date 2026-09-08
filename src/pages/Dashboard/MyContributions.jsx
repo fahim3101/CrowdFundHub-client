@@ -25,6 +25,10 @@ const MyContributions = () => {
         setContributions(res.data.contributions);
         setTotal(res.data.total);
       })
+      .catch(() => {
+        setContributions([]);
+        setTotal(0);
+      })
       .finally(() => setLoading(false));
   }, [user, axiosSecure, page]);
 

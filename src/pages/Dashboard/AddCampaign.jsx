@@ -21,6 +21,15 @@ const AddCampaign = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
+    }
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
@@ -29,12 +38,23 @@ const AddCampaign = () => {
     e.preventDefault();
     const form = e.target;
 
+    const goal = Number(form.funding_goal.value);
+    const minCon = Number(form.minimum_contribution.value);
+    if (!Number.isInteger(goal) || goal <= 0) return toast.error('Funding goal must be a positive number');
+    if (!Number.isInteger(minCon) || minCon <= 0) return toast.error('Minimum contribution must be a positive number');
+    if (minCon > goal) return toast.error('Minimum contribution cannot exceed funding goal');
+
     let imageUrl = '';
     setSubmitting(true);
     try {
       if (imageFile) {
         setUploading(true);
-        imageUrl = await uploadToImgBB(imageFile);
+        try {
+          imageUrl = await uploadToImgBB(imageFile);
+        } catch {
+          toast.error('Image upload failed. Using fallback image.');
+          imageUrl = `https://picsum.photos/seed/${Date.now()}/800/500`;
+        }
         setUploading(false);
       } else {
         // fallback so the form still works without an imgBB key configured
@@ -42,22 +62,23 @@ const AddCampaign = () => {
       }
 
       await axiosSecure.post('/campaigns', {
-        campaign_title: form.campaign_title.value,
-        campaign_story: form.campaign_story.value,
+        campaign_title: form.campaign_title.value.trim(),
+        campaign_story: form.campaign_story.value.trim(),
         category: form.category.value,
-        funding_goal: form.funding_goal.value,
-        minimum_contribution: form.minimum_contribution.value,
+        funding_goal: goal,
+        minimum_contribution: minCon,
         deadline: form.deadline.value,
-        reward_info: form.reward_info.value,
+        reward_info: form.reward_info.value.trim(),
         campaign_image_url: imageUrl,
         creator_email: user.email,
         creator_name: user.displayName,
       });
 
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
       toast.success('Campaign submitted — waiting on admin approval');
       navigate('/dashboard/my-campaigns');
     } catch (err) {
-      toast.error('Could not create campaign');
+      toast.error(err.response?.data?.message || 'Could not create campaign');
     } finally {
       setSubmitting(false);
       setUploading(false);

@@ -12,22 +12,34 @@ const ManageCampaigns = () => {
   const [loading, setLoading] = useState(true);
 
   const loadCampaigns = () => {
-    axiosSecure.get('/campaigns/all').then((res) => {
-      setCampaigns(res.data);
-      setLoading(false);
-    });
+    setLoading(true);
+    axiosSecure
+      .get('/campaigns/all')
+      .then((res) => setCampaigns(res.data))
+      .catch(() => toast.error('Could not load campaigns'))
+      .finally(() => setLoading(false));
   };
 
   useEffect(loadCampaigns, [axiosSecure]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this campaign permanently?')) return;
+  const handleStatus = async (id, status) => {
     try {
-      await axiosSecure.delete(`/campaigns/admin/${id}`);
-      toast.success('Campaign deleted');
+      await axiosSecure.patch(`/campaigns/status/${id}`, { status });
+      toast.success(`Campaign ${status}`);
       loadCampaigns();
-    } catch {
-      toast.error('Could not delete campaign');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not update status');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this campaign permanently? Supporters will be refunded.')) return;
+    try {
+      const res = await axiosSecure.delete(`/campaigns/admin/${id}`);
+      toast.success(`Campaign deleted${res.data?.refundedCount ? `, ${res.data.refundedCount} refunded` : ''}`);
+      loadCampaigns();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not delete campaign');
     }
   };
 
@@ -60,9 +72,27 @@ const ManageCampaigns = () => {
                   <td className="figures px-5 py-3">{c.amount_raised || 0} / {c.funding_goal}</td>
                   <td className="px-5 py-3"><StatusBadge status={c.status} /></td>
                   <td className="px-5 py-3 text-right">
-                    <button onClick={() => handleDelete(c._id)} className="rounded-full p-2 text-brick hover:bg-mist">
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex justify-end gap-1">
+                      {c.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleStatus(c._id, 'approved')}
+                            className="rounded-full bg-pine px-3 py-1.5 text-xs font-medium text-paper hover:bg-pine-dark"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleStatus(c._id, 'rejected')}
+                            className="rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/10"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      <button onClick={() => handleDelete(c._id)} className="rounded-full p-2 text-brick hover:bg-mist">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

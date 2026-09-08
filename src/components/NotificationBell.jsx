@@ -14,8 +14,27 @@ const NotificationBell = () => {
   // Wait until auth is fully loaded and role is available
   useEffect(() => {
     if (!user?.email || loading || !role) return;
-    axiosSecure.get(`/notifications/${user.email}`).then((res) => setNotifications(res.data));
+    axiosSecure
+      .get(`/notifications/${user.email}`)
+      .then((res) => setNotifications(res.data))
+      .catch(() => setNotifications([]));
   }, [user, role, loading, axiosSecure]);
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleToggle = async () => {
+    const next = !open;
+    setOpen(next);
+    // Mark all as read when opening, so the dot clears correctly
+    if (next && unreadCount > 0) {
+      try {
+        await axiosSecure.patch(`/notifications/read/${user.email}`);
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      } catch {
+        // silent
+      }
+    }
+  };
 
   // clicking anywhere on the page hides the popup, per the spec
   useEffect(() => {
@@ -29,13 +48,15 @@ const NotificationBell = () => {
   return (
     <div className="relative" ref={boxRef}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         className="focus-ring relative rounded-full p-2 text-ink/70 hover:bg-mist"
         aria-label="Notifications"
       >
         <Bell size={20} />
-        {notifications.length > 0 && (
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-brick" />
+        {unreadCount > 0 && (
+          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-brick px-1 text-[10px] font-bold text-white">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
       </button>
 
