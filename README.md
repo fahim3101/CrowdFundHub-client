@@ -37,6 +37,12 @@
 - 📱 **Fully responsive** — mobile, tablet, and desktop layouts with a collapsible dashboard sidebar.
 - 🎨 **Custom design system** — a distinct "ledger" identity (deep pine green, warm gold, signature progress-bar motif) instead of a generic template.
 
+## 🎯 MVP Scope
+
+**In scope** — Firebase email/Google sign-in with server-verified sessions, three role-based dashboards, campaign explore (search / filter / sort), contribution + withdrawal flows, Stripe test-mode checkout, notification bell with unread badge, imgBB uploads, fully responsive UI.
+
+**Intentionally out of scope** — automated tests (unit / E2E), PWA + offline support, dark mode, multi-language UI, real-time updates via WebSockets, native mobile apps.
+
 ## 🧱 Tech Stack
 
 | Layer | Technology |
