@@ -113,6 +113,7 @@ VITE_appId=
 VITE_API_URL=http://localhost:5000   # no trailing slash; use the deployed API in production
 VITE_IMGBB_API_KEY=
 VITE_STRIPE_PUBLISHABLE_KEY=
+VITE_SENTRY_DSN=   # optional — error tracking; leave blank to disable
 ```
 
 > These are Firebase/imgBB/Stripe **publishable** keys — safe for the browser. The matching secrets live only in the server's `.env`.

@@ -8,6 +8,9 @@ import './index.css';
 import router from './routes/Router';
 import AuthProvider from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import { initSentry } from './utils/sentry';
+
+initSentry();
 
 const queryClient = new QueryClient();
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { captureError } from '../utils/sentry';
 
 // Catches render crashes anywhere below it so one broken component
 // never leaves the user staring at a blank white page.
@@ -10,6 +11,12 @@ class ErrorBoundary extends React.Component {
 
   static getDerivedStateFromError() {
     return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // No-op unless VITE_SENTRY_DSN is set — never breaks the fallback UI.
+    captureError(error);
+    console.error('ErrorBoundary caught:', error, errorInfo);
   }
 
   render() {
