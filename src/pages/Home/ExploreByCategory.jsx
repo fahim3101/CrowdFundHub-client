@@ -22,11 +22,15 @@ const ExploreByCategory = () => {
             <Link
               key={name}
               to={`/explore-campaigns?category=${name}`}
-              className="group relative overflow-hidden rounded-2xl"
+              aria-label={`Explore ${name} campaigns`}
+              className="focus-ring group relative overflow-hidden rounded-2xl"
             >
               <img
                 src={image}
                 alt=""
+                aria-hidden="true"
+                loading="lazy"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 className="h-32 w-full object-cover transition duration-500 group-hover:scale-110 sm:h-40"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent" />

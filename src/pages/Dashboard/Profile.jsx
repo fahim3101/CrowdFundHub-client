@@ -118,7 +118,18 @@ const Profile = () => {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (!profile) return <p className="py-16 text-center text-ink/50">Could not load profile.</p>;
+  if (!profile)
+    return (
+      <div className="py-16 text-center">
+        <p className="text-ink/60">Could not load profile.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-full bg-pine px-6 py-2.5 text-sm font-semibold text-paper hover:bg-pine-dark"
+        >
+          Retry
+        </button>
+      </div>
+    );
 
   const avatar = photoPreview || profile.photoURL || user?.photoURL;
 
@@ -131,7 +142,7 @@ const Profile = () => {
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
           <div className="relative">
             {avatar ? (
-              <img src={avatar} alt={profile.name} className="h-20 w-20 rounded-full border-2 border-pine/20 object-cover" />
+              <img src={avatar} alt={profile.name || profile.email || 'User'} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="h-20 w-20 rounded-full border-2 border-pine/20 object-cover" />
             ) : (
               <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-pine/20 bg-mist text-2xl font-semibold text-pine">
                 {profile.name?.charAt(0).toUpperCase()}
@@ -182,8 +193,9 @@ const Profile = () => {
           </button>
         ) : (
           <form onSubmit={handleSave} className="mt-6 flex flex-col gap-3 border-t border-mist pt-5">
-            <label className="text-sm font-medium text-ink/80">Display name</label>
+            <label htmlFor="profile-name" className="text-sm font-medium text-ink/80">Display name</label>
             <input
+              id="profile-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -191,7 +203,7 @@ const Profile = () => {
               className="focus-ring rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
             />
             {photoPreview && (
-              <img src={photoPreview} alt="preview" className="h-16 w-16 rounded-full object-cover" />
+              <img src={photoPreview} alt="New profile preview" className="h-16 w-16 rounded-full object-cover" />
             )}
             <div className="flex gap-2">
               <button

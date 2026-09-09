@@ -22,7 +22,8 @@ const ManageCampaigns = () => {
 
   useEffect(loadCampaigns, [axiosSecure]);
 
-  const handleStatus = async (id, status) => {
+  const handleStatus = async (id, status, title) => {
+    if (!window.confirm(`${status === 'approved' ? 'Approve' : 'Reject'} "${title || 'this campaign'}"? This cannot be undone.`)) return;
     try {
       await axiosSecure.patch(`/campaigns/status/${id}`, { status });
       toast.success(`Campaign ${status}`);
@@ -67,29 +68,33 @@ const ManageCampaigns = () => {
             <tbody>
               {campaigns.map((c) => (
                 <tr key={c._id} className="border-b border-mist last:border-0">
-                  <td className="max-w-[220px] truncate px-5 py-3">{c.campaign_title}</td>
+                  <td title={c.campaign_title} className="max-w-[220px] truncate px-5 py-3">{c.campaign_title}</td>
                   <td className="px-5 py-3 text-ink/60">{c.creator_name}</td>
                   <td className="figures px-5 py-3">{c.amount_raised || 0} / {c.funding_goal}</td>
                   <td className="px-5 py-3"><StatusBadge status={c.status} /></td>
                   <td className="px-5 py-3 text-right">
                     <div className="flex justify-end gap-1">
-                      {c.status === 'pending' && (
+                      {(c.status === 'pending' || c.status === 'suspended') && (
                         <>
                           <button
-                            onClick={() => handleStatus(c._id, 'approved')}
-                            className="rounded-full bg-pine px-3 py-1.5 text-xs font-medium text-paper hover:bg-pine-dark"
+                            onClick={() => handleStatus(c._id, 'approved', c.campaign_title)}
+                            aria-label={`Approve campaign ${c.campaign_title}`}
+                            className="focus-ring rounded-full bg-pine px-3 py-1.5 text-xs font-medium text-paper hover:bg-pine-dark"
                           >
                             Approve
                           </button>
-                          <button
-                            onClick={() => handleStatus(c._id, 'rejected')}
-                            className="rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/10"
-                          >
-                            Reject
-                          </button>
+                          {c.status === 'pending' && (
+                            <button
+                              onClick={() => handleStatus(c._id, 'rejected', c.campaign_title)}
+                              aria-label={`Reject campaign ${c.campaign_title}`}
+                              className="focus-ring rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/10"
+                            >
+                              Reject
+                            </button>
+                          )}
                         </>
                       )}
-                      <button onClick={() => handleDelete(c._id)} className="rounded-full p-2 text-brick hover:bg-mist">
+                      <button onClick={() => handleDelete(c._id)} aria-label={`Delete campaign ${c.campaign_title}`} className="focus-ring rounded-full p-2 text-brick hover:bg-mist">
                         <Trash2 size={15} />
                       </button>
                     </div>

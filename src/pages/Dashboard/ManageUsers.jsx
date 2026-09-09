@@ -24,10 +24,11 @@ const ManageUsers = () => {
 
   useEffect(loadUsers, [axiosSecure]);
 
-  const handleRoleChange = async (id, role, targetEmail) => {
+  const handleRoleChange = async (id, role, targetEmail, targetName) => {
     if (targetEmail === currentUser?.email && role !== 'admin') {
       return toast.error('You cannot demote yourself — ask another admin.');
     }
+    if (!window.confirm(`Change ${targetName || targetEmail} to ${role}?`)) return;
     try {
       await axiosSecure.patch(`/users/role/${id}`, { role });
       toast.success('Role updated');
@@ -66,9 +67,11 @@ const ManageUsers = () => {
       <p className="mt-1 text-sm text-ink/55">Every registered account on the platform.</p>
 
       <input
+        id="manage-users-search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search by name or email…"
+        aria-label="Search users by name or email"
         className="focus-ring mt-5 w-full max-w-sm rounded-full border border-mist bg-white px-4 py-2.5 text-sm outline-none"
       />
 
@@ -92,7 +95,7 @@ const ManageUsers = () => {
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2.5">
                       {u.photoURL ? (
-                        <img src={u.photoURL} alt="" className="h-8 w-8 rounded-full object-cover" />
+                        <img src={u.photoURL} alt={u.name || u.email} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="h-8 w-8 rounded-full object-cover" />
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-mist text-xs font-semibold text-pine">
                           {u.name?.charAt(0).toUpperCase()}
@@ -106,7 +109,8 @@ const ManageUsers = () => {
                   <td className="px-5 py-3">
                     <select
                       value={u.role}
-                      onChange={(e) => handleRoleChange(u._id, e.target.value, u.email)}
+                      aria-label={`Role for ${u.email}`}
+                      onChange={(e) => handleRoleChange(u._id, e.target.value, u.email, u.name)}
                       className="focus-ring rounded-lg border border-mist bg-white px-2.5 py-1.5 text-xs outline-none"
                     >
                       <option value="supporter">Supporter</option>
@@ -115,7 +119,7 @@ const ManageUsers = () => {
                     </select>
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <button onClick={() => handleRemove(u._id, u.email)} className="rounded-full p-2 text-brick hover:bg-mist">
+                    <button onClick={() => handleRemove(u._id, u.email)} aria-label={`Remove user ${u.email}`} className="focus-ring rounded-full p-2 text-brick hover:bg-mist">
                       <Trash2 size={15} />
                     </button>
                   </td>

@@ -28,6 +28,15 @@ const Register = () => {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
+    }
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   };
@@ -107,9 +116,9 @@ const Register = () => {
       const user = result.user;
 
       await axios.post(`${API_URL}/users`, {
-        name: user.displayName,
+        name: user.displayName || user.email?.split('@')[0] || 'User',
         email: user.email,
-        photoURL: user.photoURL,
+        photoURL: user.photoURL || '',
         role: 'supporter',
       });
 
@@ -133,22 +142,22 @@ const Register = () => {
 
       <form onSubmit={handleRegister} className="mt-8 flex flex-col gap-4">
         <div>
-          <label className="text-sm font-medium text-ink/80">Full name</label>
-          <input name="name" type="text" required placeholder="Jane Doe"
+          <label htmlFor="reg-name" className="text-sm font-medium text-ink/80">Full name</label>
+          <input id="reg-name" name="name" type="text" required placeholder="Jane Doe"
             className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Email</label>
-          <input name="email" type="email" required placeholder="you@example.com"
+          <label htmlFor="reg-email" className="text-sm font-medium text-ink/80">Email</label>
+          <input id="reg-email" name="email" type="email" required placeholder="you@example.com"
             className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Profile picture</label>
-          <label className="focus-ring mt-1 flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-mist bg-white px-4 py-3">
+          <label htmlFor="reg-photo" className="text-sm font-medium text-ink/80">Profile picture</label>
+          <label htmlFor="reg-photo" className="focus-ring mt-1 flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-mist bg-white px-4 py-3">
             {photoPreview ? (
-              <img src={photoPreview} alt="preview" className="h-10 w-10 rounded-full object-cover" />
+              <img src={photoPreview} alt="Selected profile preview" className="h-10 w-10 rounded-full object-cover" />
             ) : (
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-mist text-ink/40">
                 <UploadCloud size={18} />
@@ -157,13 +166,13 @@ const Register = () => {
             <span className="text-sm text-ink/50">
               {photoPreview ? 'Change photo' : 'Click to upload a photo (optional)'}
             </span>
-            <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+            <input id="reg-photo" type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
           </label>
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">I want to join as</label>
-          <select name="role" defaultValue="supporter"
+          <label htmlFor="reg-role" className="text-sm font-medium text-ink/80">I want to join as</label>
+          <select id="reg-role" name="role" defaultValue="supporter"
             className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none">
             <option value="supporter">Supporter — I want to back campaigns</option>
             <option value="creator">Creator — I want to launch a campaign</option>
@@ -171,19 +180,19 @@ const Register = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Password</label>
+          <label htmlFor="reg-password" className="text-sm font-medium text-ink/80">Password</label>
           <div className="relative mt-1">
-            <input name="password" type={showPassword ? 'text' : 'password'} required
+            <input id="reg-password" name="password" type={showPassword ? 'text' : 'password'} required
               placeholder="At least 6 characters, 1 upper, 1 lower"
               className="focus-ring w-full rounded-lg border border-mist bg-white px-4 py-2.5 pr-10 text-sm outline-none" />
-            <button type="button" onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40">
+            <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="focus-ring absolute right-3 top-1/2 -translate-y-1/2 rounded text-ink/40">
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </div>
         </div>
 
-        {error && <p className="rounded-lg bg-brick/10 px-3 py-2 text-sm text-brick">{error}</p>}
+        {error && <p role="alert" className="rounded-lg bg-brick/10 px-3 py-2 text-sm text-brick">{error}</p>}
 
         <button type="submit" disabled={loading}
           className="mt-2 rounded-full bg-pine px-6 py-3 text-sm font-semibold text-paper transition hover:bg-pine-dark disabled:opacity-60">

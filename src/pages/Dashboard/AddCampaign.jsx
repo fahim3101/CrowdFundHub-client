@@ -43,6 +43,8 @@ const AddCampaign = () => {
     if (!Number.isInteger(goal) || goal <= 0) return toast.error('Funding goal must be a positive number');
     if (!Number.isInteger(minCon) || minCon <= 0) return toast.error('Minimum contribution must be a positive number');
     if (minCon > goal) return toast.error('Minimum contribution cannot exceed funding goal');
+    const today = new Date().toISOString().slice(0, 10);
+    if (form.deadline.value < today) return toast.error('Deadline must be today or later');
 
     let imageUrl = '';
     setSubmitting(true);
@@ -71,7 +73,7 @@ const AddCampaign = () => {
         reward_info: form.reward_info.value.trim(),
         campaign_image_url: imageUrl,
         creator_email: user.email,
-        creator_name: user.displayName,
+        creator_name: user.displayName || user.email?.split('@')[0] || 'Creator',
       });
 
       if (imagePreview) URL.revokeObjectURL(imagePreview);
@@ -92,48 +94,48 @@ const AddCampaign = () => {
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
         <div>
-          <label className="text-sm font-medium text-ink/80">Campaign title</label>
-          <input name="campaign_title" required placeholder="Help us build a solar-powered water pump"
+          <label htmlFor="cp-title" className="text-sm font-medium text-ink/80">Campaign title</label>
+          <input id="cp-title" name="campaign_title" required placeholder="Help us build a solar-powered water pump"
             className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Campaign story</label>
-          <textarea name="campaign_story" required rows={5} placeholder="Tell supporters what you're building and why it matters"
+          <label htmlFor="cp-story" className="text-sm font-medium text-ink/80">Campaign story</label>
+          <textarea id="cp-story" name="campaign_story" required rows={5} placeholder="Tell supporters what you're building and why it matters"
             className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-sm font-medium text-ink/80">Category</label>
-            <select name="category" required
+            <label htmlFor="cp-category" className="text-sm font-medium text-ink/80">Category</label>
+            <select id="cp-category" name="category" required
               className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none">
               {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-sm font-medium text-ink/80">Deadline</label>
-            <input name="deadline" type="date" required min={new Date().toISOString().slice(0, 10)}
+            <label htmlFor="cp-deadline" className="text-sm font-medium text-ink/80">Deadline</label>
+            <input id="cp-deadline" name="deadline" type="date" required min={new Date().toISOString().slice(0, 10)}
               className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-sm font-medium text-ink/80">Funding goal (credits)</label>
-            <input name="funding_goal" type="number" min="1" required placeholder="500"
+            <label htmlFor="cp-goal" className="text-sm font-medium text-ink/80">Funding goal (credits)</label>
+            <input id="cp-goal" name="funding_goal" type="number" min="1" required placeholder="500"
               className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
           </div>
           <div>
-            <label className="text-sm font-medium text-ink/80">Minimum contribution</label>
-            <input name="minimum_contribution" type="number" min="1" required placeholder="10"
+            <label htmlFor="cp-min" className="text-sm font-medium text-ink/80">Minimum contribution</label>
+            <input id="cp-min" name="minimum_contribution" type="number" min="1" required placeholder="10"
               className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
           </div>
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Reward info</label>
-          <input name="reward_info" required placeholder="Early access, thank-you card, and product credit"
+          <label htmlFor="cp-reward" className="text-sm font-medium text-ink/80">Reward info</label>
+          <input id="cp-reward" name="reward_info" required placeholder="Early access, thank-you card, and product credit"
             className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
         </div>
 

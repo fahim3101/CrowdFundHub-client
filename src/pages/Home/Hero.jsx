@@ -42,6 +42,9 @@ const Hero = () => {
               <img
                 src={slide.image}
                 alt=""
+                aria-hidden="true"
+                loading={i === 0 ? 'eager' : 'lazy'}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 className="absolute inset-0 h-full w-full object-cover opacity-40"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" />
@@ -54,13 +57,13 @@ const Hero = () => {
                 <div className="animate-hero-in-delay mt-8 flex flex-wrap items-center justify-center gap-4">
                   <Link
                     to="/explore-campaigns"
-                    className="flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition hover:bg-gold-light"
+                    className="focus-ring flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition hover:bg-gold-light"
                   >
                     Explore Campaigns <ArrowRight size={16} />
                   </Link>
                   <Link
                     to="/register"
-                    className="rounded-full border border-paper/30 px-6 py-3 text-sm font-semibold text-paper transition hover:border-gold hover:text-gold"
+                    className="focus-ring rounded-full border border-paper/30 px-6 py-3 text-sm font-semibold text-paper transition hover:border-gold hover:text-gold"
                   >
                     Start a Campaign
                   </Link>

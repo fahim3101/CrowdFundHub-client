@@ -22,6 +22,15 @@ const Footer = () => {
             </p>
           </div>
 
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
+            <Link to="/explore-campaigns" className="text-paper/70 transition hover:text-gold">Explore</Link>
+            <Link to="/login" className="text-paper/70 transition hover:text-gold">Login</Link>
+            <Link to="/register" className="text-paper/70 transition hover:text-gold">Register</Link>
+            <Link to="/dashboard" className="text-paper/70 transition hover:text-gold">Dashboard</Link>
+            <Link to="/explore-campaigns?category=Technology" className="text-paper/70 transition hover:text-gold">Technology</Link>
+            <Link to="/explore-campaigns?category=Education" className="text-paper/70 transition hover:text-gold">Education</Link>
+          </nav>
+
           <div className="flex gap-3">
             <a href={CLIENT_REPO} target="_blank" rel="noreferrer" aria-label="Client repository on GitHub" title="Client repo" className="rounded-full border border-paper/15 p-2.5 transition hover:border-gold hover:text-gold">
               <Github size={18} />

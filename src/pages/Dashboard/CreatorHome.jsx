@@ -13,23 +13,29 @@ const CreatorHome = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [modalContribution, setModalContribution] = useState(null);
 
   const loadData = () => {
     if (!user?.email) return;
+    setLoading(true);
+    setLoadError('');
     Promise.all([
       axiosSecure.get(`/campaigns/creator/${user.email}`),
       axiosSecure.get(`/contributions/pending/${user.email}`),
-    ]).then(([campRes, pendingRes]) => {
-      setCampaigns(campRes.data);
-      setPending(pendingRes.data);
-      setLoading(false);
-    });
+    ])
+      .then(([campRes, pendingRes]) => {
+        setCampaigns(campRes.data);
+        setPending(pendingRes.data);
+      })
+      .catch(() => setLoadError('Could not load your campaigns.'))
+      .finally(() => setLoading(false));
   };
 
   useEffect(loadData, [user, axiosSecure]);
 
   const handleDecision = async (id, status) => {
+    if (!window.confirm(`${status === 'approved' ? 'Approve' : 'Reject'} this contribution? ${status === 'rejected' ? 'Supporter will be refunded. ' : ''}This cannot be undone.`)) return;
     try {
       await axiosSecure.patch(`/contributions/status/${id}`, { status });
       toast.success(`Contribution ${status}`);
@@ -41,13 +47,26 @@ const CreatorHome = () => {
   };
 
   if (loading) return <LoadingSpinner />;
+  if (loadError)
+    return (
+      <div className="py-16 text-center">
+        <p className="text-ink/60">{loadError}</p>
+        <button
+          onClick={loadData}
+          className="mt-4 rounded-full bg-pine px-6 py-2.5 text-sm font-semibold text-paper hover:bg-pine-dark"
+        >
+          Retry
+        </button>
+      </div>
+    );
 
   const activeCampaigns = campaigns.filter((c) => new Date(c.deadline) >= new Date()).length;
   const totalRaised = campaigns.reduce((sum, c) => sum + (c.amount_raised || 0), 0);
+  const displayName = user.displayName || user.email?.split('@')[0] || 'there';
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-ink">Welcome back, {user.displayName?.split(' ')[0]}</h1>
+      <h1 className="text-2xl font-semibold text-ink">Welcome back, {displayName.split(' ')[0]}</h1>
       <p className="mt-1 text-sm text-ink/55">Here's how your campaigns are doing.</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -89,13 +108,15 @@ const CreatorHome = () => {
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => handleDecision(c._id, 'approved')}
-                        className="rounded-full bg-pine px-3 py-1.5 text-xs font-medium text-paper hover:bg-pine-dark"
+                        aria-label={`Approve ${c.contribution_amount} credits from ${c.supporter_name}`}
+                        className="focus-ring rounded-full bg-pine px-3 py-1.5 text-xs font-medium text-paper hover:bg-pine-dark"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => handleDecision(c._id, 'rejected')}
-                        className="rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/5"
+                        aria-label={`Reject ${c.contribution_amount} credits from ${c.supporter_name}`}
+                        className="focus-ring rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/5"
                       >
                         Reject
                       </button>
@@ -109,8 +130,15 @@ const CreatorHome = () => {
       </div>
 
       {modalContribution && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-5">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Contribution detail"
+          onKeyDown={(e) => { if (e.key === 'Escape') setModalContribution(null); }}
+          onClick={() => setModalContribution(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/40 px-5 py-8"
+        >
+          <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-6">
             <h3 className="text-lg font-semibold text-ink">Contribution detail</h3>
             <div className="mt-4 space-y-2 text-sm">
               <p><span className="text-ink/50">Supporter:</span> {modalContribution.supporter_name}</p>

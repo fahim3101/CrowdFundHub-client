@@ -83,7 +83,7 @@ const CheckoutForm = ({ selectedPackage, onSuccess }) => {
       <div className="rounded-lg border border-mist bg-white p-4">
         <CardElement options={cardStyle} />
       </div>
-      {error && <p className="text-sm text-brick">{error}</p>}
+      {error && <p role="alert" className="text-sm text-brick">{error}</p>}
       <button
         type="submit"
         disabled={!stripe || processing || !clientSecret}
@@ -91,9 +91,11 @@ const CheckoutForm = ({ selectedPackage, onSuccess }) => {
       >
         {processing ? 'Processing…' : `Pay $${selectedPackage.price}`}
       </button>
-      <p className="text-center text-xs text-ink/40">
-        Test mode — use card number 4242 4242 4242 4242, any future date, any CVC.
-      </p>
+      {import.meta.env.DEV && (
+        <p className="text-center text-xs text-ink/40">
+          Test mode — use card number 4242 4242 4242 4242, any future date, any CVC.
+        </p>
+      )}
     </form>
   );
 };

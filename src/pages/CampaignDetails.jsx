@@ -6,6 +6,7 @@ import { Calendar, Flag, Gift, Target } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import useAxiosSecure from '../hooks/useAxiosSecure';
 import LoadingSpinner from '../components/LoadingSpinner';
+import EmptyState from '../components/EmptyState';
 
 const CampaignDetails = () => {
   const { id } = useParams();
@@ -34,7 +35,20 @@ const CampaignDetails = () => {
   }, [id]);
 
   if (loading) return <LoadingSpinner />;
-  if (!campaign) return <p className="py-24 text-center text-ink/50">Campaign not found.</p>;
+  if (!campaign)
+    return (
+      <div className="mx-auto max-w-xl px-5 py-24">
+        <EmptyState
+          title="Campaign not found"
+          body="It may have been removed by the creator or admin."
+          action={
+            <Link to="/explore-campaigns" className="rounded-full bg-pine px-5 py-2 text-sm font-semibold text-paper hover:bg-pine-dark">
+              Back to explore
+            </Link>
+          }
+        />
+      </div>
+    );
 
   const percent = Math.min(100, Math.round(((campaign.amount_raised || 0) / campaign.funding_goal) * 100));
   const isExpired = campaign.deadline && campaign.deadline < new Date().toISOString().slice(0, 10);
@@ -50,6 +64,7 @@ const CampaignDetails = () => {
     if (value < campaign.minimum_contribution) {
       return toast.error(`Minimum contribution is ${campaign.minimum_contribution} credits`);
     }
+    if (!window.confirm(`Contribute ${value} credits to "${campaign.campaign_title}"? This cannot be undone.`)) return;
 
     setSubmitting(true);
     try {
@@ -58,7 +73,7 @@ const CampaignDetails = () => {
         campaign_title: campaign.campaign_title,
         contribution_amount: value,
         supporter_email: user.email,
-        supporter_name: user.displayName,
+        supporter_name: user.displayName || user.email?.split('@')[0] || 'Supporter',
         creator_email: campaign.creator_email,
         creator_name: campaign.creator_name,
       });
@@ -75,13 +90,16 @@ const CampaignDetails = () => {
 
   const handleReport = async (e) => {
     e.preventDefault();
+    if (!reportReason.trim() || reportReason.trim().length < 10) {
+      return toast.error('Please describe the issue in at least 10 characters');
+    }
     try {
       await axiosSecure.post('/reports', {
         campaign_id: campaign._id,
         campaign_title: campaign.campaign_title,
-        reporter_name: user.displayName,
+        reporter_name: user.displayName || user.email?.split('@')[0] || 'Supporter',
         reporter_email: user.email,
-        reason: reportReason,
+        reason: reportReason.trim(),
       });
       toast.success('Thanks — the admin team will look into it');
       setShowReport(false);
@@ -133,11 +151,15 @@ const CampaignDetails = () => {
 
           {showReport && (
             <form onSubmit={handleReport} className="mt-3 flex flex-col gap-3 rounded-xl border border-brick/20 bg-brick/5 p-4">
+              <label htmlFor="report-reason" className="text-sm font-medium text-ink/80">Why does this look suspicious?</label>
               <textarea
+                id="report-reason"
                 required
+                minLength={10}
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
                 placeholder="Why does this campaign look suspicious or fraudulent?"
+                aria-label="Report reason"
                 className="focus-ring w-full rounded-lg border border-mist bg-white p-3 text-sm outline-none"
                 rows={3}
               />
@@ -182,20 +204,22 @@ const CampaignDetails = () => {
               <p className="text-center text-sm text-ink/50">Only supporter accounts can contribute credits.</p>
             ) : (
               <form onSubmit={handleContribute} className="flex flex-col gap-3">
-                <label className="text-sm font-medium text-ink/80">Contribution amount (credits)</label>
+                <label htmlFor="contribute-amount" className="text-sm font-medium text-ink/80">Contribution amount (credits)</label>
                 <input
+                  id="contribute-amount"
                   type="number"
                   min={campaign.minimum_contribution}
                   required
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder={`Min ${campaign.minimum_contribution}`}
+                  aria-label="Contribution amount in credits"
                   className="focus-ring rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
                 />
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-full bg-gold px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-gold-light disabled:opacity-60"
+                  className="focus-ring rounded-full bg-gold px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-gold-light disabled:opacity-60"
                 >
                   {submitting ? 'Submitting…' : 'Contribute'}
                 </button>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
@@ -43,7 +44,15 @@ const MyContributions = () => {
         {loading ? (
           <LoadingSpinner full={false} />
         ) : contributions.length === 0 ? (
-          <EmptyState title="You haven't contributed to any campaign yet" body="Explore campaigns to find one worth backing." />
+          <EmptyState
+            title="You haven't contributed to any campaign yet"
+            body="Explore campaigns to find one worth backing."
+            action={
+              <Link to="/dashboard/explore-campaigns" className="rounded-full bg-pine px-5 py-2 text-sm font-semibold text-paper hover:bg-pine-dark">
+                Explore campaigns
+              </Link>
+            }
+          />
         ) : (
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-mist bg-paper text-xs uppercase tracking-wide text-ink/50">
@@ -71,11 +80,12 @@ const MyContributions = () => {
       </div>
 
       {totalPages > 1 && (
-        <div className="mt-5 flex items-center justify-center gap-2">
+        <nav aria-label="Contributions pages" className="mt-5 flex items-center justify-center gap-2">
           <button
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0}
-            className="rounded-full border border-mist p-2 disabled:opacity-30"
+            aria-label="Previous page"
+            className="focus-ring rounded-full border border-mist p-2 disabled:opacity-30"
           >
             <ChevronLeft size={16} />
           </button>
@@ -83,7 +93,9 @@ const MyContributions = () => {
             <button
               key={i}
               onClick={() => setPage(i)}
-              className={`h-8 w-8 rounded-full text-sm font-medium ${
+              aria-label={`Go to page ${i + 1}`}
+              aria-current={page === i ? 'page' : undefined}
+              className={`focus-ring h-8 w-8 rounded-full text-sm font-medium ${
                 page === i ? 'bg-pine text-paper' : 'text-ink/60 hover:bg-mist'
               }`}
             >
@@ -93,11 +105,12 @@ const MyContributions = () => {
           <button
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page === totalPages - 1}
-            className="rounded-full border border-mist p-2 disabled:opacity-30"
+            aria-label="Next page"
+            className="focus-ring rounded-full border border-mist p-2 disabled:opacity-30"
           >
             <ChevronRight size={16} />
           </button>
-        </div>
+        </nav>
       )}
     </div>
   );

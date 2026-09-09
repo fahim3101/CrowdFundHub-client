@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { Search } from 'lucide-react';
 import CampaignCard from '../components/CampaignCard';
 import CampaignSkeleton from '../components/CampaignSkeleton';
 import SectionHeading from '../components/SectionHeading';
+import EmptyState from '../components/EmptyState';
 
 const categories = ['all', 'Technology', 'Art', 'Community', 'Health', 'Environment', 'Education'];
 
@@ -12,6 +13,7 @@ const ExploreCampaigns = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const category = searchParams.get('category') || 'all';
@@ -25,6 +27,7 @@ const ExploreCampaigns = () => {
 
   useEffect(() => {
     setLoading(true);
+    setLoadError('');
     const params = new URLSearchParams();
     if (debouncedSearch) params.set('search', debouncedSearch);
     if (category !== 'all') params.set('category', category);
@@ -33,9 +36,17 @@ const ExploreCampaigns = () => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/campaigns?${params.toString()}`)
       .then((res) => setCampaigns(res.data))
-      .catch(() => setCampaigns([]))
+      .catch(() => {
+        setCampaigns([]);
+        setLoadError('Could not load campaigns. Check your connection and retry.');
+      })
       .finally(() => setLoading(false));
   }, [debouncedSearch, category, sort]);
+
+  const clearFilters = () => {
+    setSearch('');
+    setSearchParams({});
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8">
@@ -45,15 +56,18 @@ const ExploreCampaigns = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/40" size={17} />
           <input
+            id="explore-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search campaigns by title…"
+            aria-label="Search campaigns by title"
             className="focus-ring w-full rounded-full border border-mist bg-white py-2.5 pl-10 pr-4 text-sm outline-none"
           />
         </div>
 
         <select
           value={category}
+          aria-label="Filter by category"
           onChange={(e) => setSearchParams((p) => { p.set('category', e.target.value); return p; })}
           className="focus-ring rounded-full border border-mist bg-white px-4 py-2.5 text-sm outline-none"
         >
@@ -64,6 +78,7 @@ const ExploreCampaigns = () => {
 
         <select
           value={sort}
+          aria-label="Sort campaigns"
           onChange={(e) => setSearchParams((p) => { p.set('sort', e.target.value); return p; })}
           className="focus-ring rounded-full border border-mist bg-white px-4 py-2.5 text-sm outline-none"
         >
@@ -81,8 +96,18 @@ const ExploreCampaigns = () => {
               <CampaignSkeleton key={i} />
             ))}
           </div>
+        ) : loadError ? (
+          <p role="alert" className="py-16 text-center text-brick">{loadError}</p>
         ) : campaigns.length === 0 ? (
-          <p className="py-16 text-center text-ink/50">No campaigns match your search yet.</p>
+          <EmptyState
+            title="No campaigns match your search yet."
+            body="Try a different keyword or clear the filters."
+            action={
+              <button onClick={clearFilters} className="rounded-full border border-mist px-5 py-2 text-sm font-semibold text-ink hover:bg-mist">
+                Clear filters
+              </button>
+            }
+          />
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {campaigns.map((c) => (

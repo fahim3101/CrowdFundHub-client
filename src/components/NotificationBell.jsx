@@ -41,8 +41,15 @@ const NotificationBell = () => {
     const handleClick = (e) => {
       if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
     };
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
   }, []);
 
   return (
@@ -70,9 +77,10 @@ const NotificationBell = () => {
             {notifications.map((n) => (
               <Link
                 key={n._id}
-                to={n.actionRoute}
+                to={n.actionRoute || '/dashboard'}
+                aria-label={`Notification: ${n.message}`}
                 onClick={() => setOpen(false)}
-                className="block border-b border-mist px-4 py-3 text-sm text-ink/80 last:border-0 hover:bg-paper"
+                className="focus-ring block border-b border-mist px-4 py-3 text-sm text-ink/80 last:border-0 hover:bg-paper"
               >
                 {n.message}
                 <span className="mt-1 block font-mono text-[11px] text-ink/40">

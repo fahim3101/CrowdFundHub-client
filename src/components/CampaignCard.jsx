@@ -51,7 +51,8 @@ const CampaignCard = ({ campaign }) => {
           </span>
           <Link
             to={`/campaign/${campaign._id}`}
-            className="rounded-full bg-pine px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-pine-dark"
+            aria-label={`View details for ${campaign.campaign_title}`}
+            className="focus-ring rounded-full bg-pine px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-pine-dark"
           >
             View Details
           </Link>

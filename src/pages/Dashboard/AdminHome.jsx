@@ -12,23 +12,29 @@ const AdminHome = () => {
   const [pendingCampaigns, setPendingCampaigns] = useState([]);
   const [paymentsCount, setPaymentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   const loadData = () => {
+    setLoading(true);
+    setLoadError('');
     Promise.all([
       axiosSecure.get('/users'),
       axiosSecure.get('/campaigns/pending'),
       axiosSecure.get('/payments-count'),
-    ]).then(([usersRes, pendingRes, paymentsRes]) => {
-      setUsers(usersRes.data);
-      setPendingCampaigns(pendingRes.data);
-      setPaymentsCount(paymentsRes.data.count);
-      setLoading(false);
-    });
+    ])
+      .then(([usersRes, pendingRes, paymentsRes]) => {
+        setUsers(usersRes.data);
+        setPendingCampaigns(pendingRes.data);
+        setPaymentsCount(paymentsRes.data.count);
+      })
+      .catch(() => setLoadError('Could not load admin overview.'))
+      .finally(() => setLoading(false));
   };
 
   useEffect(loadData, [axiosSecure]);
 
   const handleDecision = async (id, status) => {
+    if (!window.confirm(`${status === 'approved' ? 'Approve' : 'Reject'} this campaign? This cannot be undone.`)) return;
     try {
       await axiosSecure.patch(`/campaigns/status/${id}`, { status });
       toast.success(`Campaign ${status}`);
@@ -39,6 +45,18 @@ const AdminHome = () => {
   };
 
   if (loading) return <LoadingSpinner />;
+  if (loadError)
+    return (
+      <div className="py-16 text-center">
+        <p className="text-ink/60">{loadError}</p>
+        <button
+          onClick={loadData}
+          className="mt-4 rounded-full bg-pine px-6 py-2.5 text-sm font-semibold text-paper hover:bg-pine-dark"
+        >
+          Retry
+        </button>
+      </div>
+    );
 
   const supporters = users.filter((u) => u.role === 'supporter').length;
   const creators = users.filter((u) => u.role === 'creator').length;
@@ -74,7 +92,7 @@ const AdminHome = () => {
             <tbody>
               {pendingCampaigns.map((c) => (
                 <tr key={c._id} className="border-b border-mist last:border-0">
-                  <td className="max-w-[220px] truncate px-5 py-3">{c.campaign_title}</td>
+                  <td title={c.campaign_title} className="max-w-[220px] truncate px-5 py-3">{c.campaign_title}</td>
                   <td className="px-5 py-3 text-ink/60">{c.creator_name}</td>
                   <td className="figures px-5 py-3">{c.funding_goal}</td>
                   <td className="px-5 py-3 text-ink/50">{c.deadline}</td>
@@ -82,13 +100,15 @@ const AdminHome = () => {
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => handleDecision(c._id, 'approved')}
-                        className="rounded-full bg-pine px-3 py-1.5 text-xs font-medium text-paper hover:bg-pine-dark"
+                        aria-label={`Approve campaign ${c.campaign_title}`}
+                        className="focus-ring rounded-full bg-pine px-3 py-1.5 text-xs font-medium text-paper hover:bg-pine-dark"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => handleDecision(c._id, 'rejected')}
-                        className="rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/5"
+                        aria-label={`Reject campaign ${c.campaign_title}`}
+                        className="focus-ring rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/5"
                       >
                         Reject
                       </button>

@@ -39,13 +39,20 @@ const PurchaseCredit = () => {
       </div>
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-5">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Purchase ${selected.credits} credits`}
+          onKeyDown={(e) => { if (e.key === 'Escape') setSelected(null); }}
+          onClick={() => setSelected(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/40 px-5 py-8"
+        >
+          <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-2xl bg-white p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-ink">
                 {selected.credits} credits — ${selected.price}
               </h2>
-              <button onClick={() => setSelected(null)} className="text-ink/40 hover:text-ink">
+              <button onClick={() => setSelected(null)} aria-label="Close purchase dialog" className="focus-ring rounded-lg text-ink/40 hover:text-ink">
                 <X size={20} />
               </button>
             </div>

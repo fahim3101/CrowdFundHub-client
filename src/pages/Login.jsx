@@ -50,9 +50,9 @@ const Login = () => {
       // register-if-new: server no-ops if this email already has an account
       // (and never overwrites role for existing users)
       await axios.post(`${API_URL}/users`, {
-        name: user.displayName,
+        name: user.displayName || user.email?.split('@')[0] || 'User',
         email: user.email,
-        photoURL: user.photoURL,
+        photoURL: user.photoURL || '',
         role: 'supporter',
       });
 
@@ -75,24 +75,24 @@ const Login = () => {
 
       <form onSubmit={handleLogin} className="mt-8 flex flex-col gap-4">
         <div>
-          <label className="text-sm font-medium text-ink/80">Email</label>
-          <input name="email" type="email" required placeholder="you@example.com"
+          <label htmlFor="login-email" className="text-sm font-medium text-ink/80">Email</label>
+          <input id="login-email" name="email" type="email" required placeholder="you@example.com"
             className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none" />
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Password</label>
+          <label htmlFor="login-password" className="text-sm font-medium text-ink/80">Password</label>
           <div className="relative mt-1">
-            <input name="password" type={showPassword ? 'text' : 'password'} required placeholder="••••••••"
+            <input id="login-password" name="password" type={showPassword ? 'text' : 'password'} required placeholder="••••••••"
               className="focus-ring w-full rounded-lg border border-mist bg-white px-4 py-2.5 pr-10 text-sm outline-none" />
-            <button type="button" onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40">
+            <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="focus-ring absolute right-3 top-1/2 -translate-y-1/2 rounded text-ink/40">
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
           </div>
         </div>
 
-        {error && <p className="rounded-lg bg-brick/10 px-3 py-2 text-sm text-brick">{error}</p>}
+        {error && <p role="alert" className="rounded-lg bg-brick/10 px-3 py-2 text-sm text-brick">{error}</p>}
 
         <button type="submit" disabled={loading}
           className="mt-2 rounded-full bg-pine px-6 py-3 text-sm font-semibold text-paper transition hover:bg-pine-dark disabled:opacity-60">

@@ -40,7 +40,16 @@ const DashboardLayout = () => {
   const { user, role, credits, loading } = useAuth();
   const [open, setOpen] = useState(false);
 
-  if (loading || !role) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />;
+  if (!role)
+    return (
+      <div className="py-24 text-center">
+        <p className="text-ink/60">Could not load your dashboard role. Your session may have expired.</p>
+        <Link to="/login" className="mt-4 inline-block rounded-full bg-pine px-6 py-2.5 text-sm font-semibold text-paper hover:bg-pine-dark">
+          Back to login
+        </Link>
+      </div>
+    );
 
   const items = navByRole[role] || [];
 
@@ -57,7 +66,7 @@ const DashboardLayout = () => {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-pine font-display text-lg font-semibold text-paper">C</span>
             <span className="font-display text-lg font-semibold text-ink">CrowdFundHub</span>
           </Link>
-          <button className="md:hidden" onClick={() => setOpen(false)}><X size={20} /></button>
+          <button className="md:hidden focus-ring rounded-lg p-1" aria-label="Close menu" onClick={() => setOpen(false)}><X size={20} /></button>
         </div>
 
         <div className="border-b border-mist px-5 py-4">
@@ -65,32 +74,33 @@ const DashboardLayout = () => {
             {user?.photoURL ? (
               <img
                 src={user.photoURL}
-                alt={user.displayName}
+                alt={user.displayName || user.email || 'User'}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 className="h-11 w-11 rounded-full border-2 border-pine/20 object-cover"
               />
             ) : (
               <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-pine/20 bg-mist text-lg font-semibold text-pine">
-                {user?.displayName?.charAt(0).toUpperCase() || user?.email.charAt(0).toUpperCase()}
+                {user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-ink">{user?.displayName || 'User'}</p>
+              <p className="truncate text-sm font-semibold text-ink">{user?.displayName || user?.email?.split('@')[0] || 'User'}</p>
               <p className="font-mono text-[11px] uppercase tracking-wide text-pine">{role}</p>
             </div>
           </div>
           <div className="figures mt-3 flex items-center gap-1.5 rounded-full bg-mist px-3 py-1.5 text-sm font-semibold text-pine-dark w-fit">
-            <Coins size={14} /> {credits} credits
+            <Coins size={14} /> {credits ?? 0} credits
           </div>
         </div>
 
-        <nav className="flex flex-col gap-1 px-3 py-4">
+        <nav className="flex flex-col gap-1 px-3 py-4" aria-label="Dashboard">
           {items.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                `focus-ring flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                   isActive ? 'bg-pine text-paper' : 'text-ink/70 hover:bg-mist'
                 }`
               }
@@ -108,7 +118,7 @@ const DashboardLayout = () => {
       {/* Main content */}
       <div className="flex flex-1 flex-col md:ml-0">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-mist bg-paper/90 px-5 py-4 backdrop-blur">
-          <button className="md:hidden" onClick={() => setOpen(true)}><Menu size={22} /></button>
+          <button className="md:hidden focus-ring rounded-lg p-1" aria-label="Open menu" onClick={() => setOpen(true)}><Menu size={22} /></button>
           <p className="hidden font-display text-lg font-semibold text-ink md:block">Dashboard</p>
           <div className="flex items-center gap-4">
             <NotificationBell />

@@ -53,11 +53,13 @@ const Withdrawals = () => {
       return toast.error(`Insufficient available credit. Available: ${available}`);
     }
     if (!accountNumber.trim()) return toast.error('Account number is required');
+    if (accountNumber.trim().length < 6) return toast.error('Account number looks too short');
+    if (!window.confirm(`Request withdrawal of ${val} credits (≈ $${(val / CREDITS_PER_DOLLAR).toFixed(2)}) via ${paymentSystem}? This cannot be undone.`)) return;
     setSubmitting(true);
     try {
       await axiosSecure.post('/withdrawals', {
         creator_email: user.email,
-        creator_name: user.displayName,
+        creator_name: user.displayName || user.email?.split('@')[0] || 'Creator',
         withdrawal_credit: val,
         payment_system: paymentSystem,
         account_number: accountNumber.trim(),
@@ -95,21 +97,24 @@ const Withdrawals = () => {
       ) : (
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <div>
-            <label className="text-sm font-medium text-ink/80">Credits to withdraw</label>
+            <label htmlFor="wd-credits" className="text-sm font-medium text-ink/80">Credits to withdraw</label>
             <input
+              id="wd-credits"
               type="number"
               required
               min={MIN_CREDITS}
               max={available}
               value={credits}
               onChange={(e) => setCredits(e.target.value)}
+              aria-label="Credits to withdraw"
               className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-ink/80">Withdraw amount ($)</label>
+            <label htmlFor="wd-usd" className="text-sm font-medium text-ink/80">Withdraw amount ($)</label>
             <input
+              id="wd-usd"
               disabled
               value={dollarAmount}
               className="figures mt-1 w-full rounded-lg border border-mist bg-mist px-4 py-2.5 text-sm text-ink/60"
@@ -117,8 +122,9 @@ const Withdrawals = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-ink/80">Payment system</label>
+            <label htmlFor="wd-system" className="text-sm font-medium text-ink/80">Payment system</label>
             <select
+              id="wd-system"
               value={paymentSystem}
               onChange={(e) => setPaymentSystem(e.target.value)}
               className="focus-ring mt-1 w-full rounded-lg border border-mist bg-white px-4 py-2.5 text-sm outline-none"
@@ -131,9 +137,11 @@ const Withdrawals = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-ink/80">Account number</label>
+            <label htmlFor="wd-account" className="text-sm font-medium text-ink/80">Account number</label>
             <input
+              id="wd-account"
               required
+              minLength={6}
               value={accountNumber}
               onChange={(e) => setAccountNumber(e.target.value)}
               placeholder="01XXXXXXXXX"
@@ -142,12 +150,12 @@ const Withdrawals = () => {
           </div>
 
           {Number(credits) > available ? (
-            <p className="text-center text-sm text-brick">Insufficient available credit (pending: {pendingSum})</p>
+            <p role="alert" className="text-center text-sm text-brick">Insufficient available credit (pending: {pendingSum})</p>
           ) : (
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-full bg-pine px-6 py-3 text-sm font-semibold text-paper transition hover:bg-pine-dark disabled:opacity-60"
+              className="focus-ring rounded-full bg-pine px-6 py-3 text-sm font-semibold text-paper transition hover:bg-pine-dark disabled:opacity-60"
             >
               {submitting ? 'Submitting…' : 'Withdraw'}
             </button>

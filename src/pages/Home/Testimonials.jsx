@@ -57,7 +57,7 @@ const Testimonials = () => {
                 <Quote className="text-gold" size={26} />
                 <p className="mt-4 flex-1 text-ink/75">{t.quote}</p>
                 <div className="mt-6 flex items-center gap-3 border-t border-mist pt-5">
-                  <img src={t.photo} alt={t.name} className="h-11 w-11 rounded-full object-cover" />
+                  <img src={t.photo} alt={t.name} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="h-11 w-11 rounded-full object-cover" />
                   <div>
                     <p className="text-sm font-semibold text-ink">{t.name}</p>
                     <p className="text-xs text-ink/50">{t.role}</p>

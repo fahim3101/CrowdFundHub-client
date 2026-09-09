@@ -9,17 +9,22 @@ const Reports = () => {
   const axiosSecure = useAxiosSecure();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   const loadReports = () => {
-    axiosSecure.get('/reports').then((res) => {
-      setReports(res.data);
-      setLoading(false);
-    });
+    setLoading(true);
+    setLoadError('');
+    axiosSecure
+      .get('/reports')
+      .then((res) => setReports(res.data))
+      .catch(() => setLoadError('Could not load reports.'))
+      .finally(() => setLoading(false));
   };
 
   useEffect(loadReports, [axiosSecure]);
 
-  const handleSuspend = async (campaignId) => {
+  const handleSuspend = async (campaignId, campaignTitle) => {
+    if (!window.confirm(`Suspend "${campaignTitle || 'this campaign'}"? It will be hidden from supporters. This cannot be undone from here — use Manage Campaigns to re-approve.`)) return;
     try {
       await axiosSecure.patch(`/reports/suspend/${campaignId}`);
       toast.success('Campaign suspended');
@@ -41,6 +46,18 @@ const Reports = () => {
   };
 
   if (loading) return <LoadingSpinner />;
+  if (loadError)
+    return (
+      <div className="py-16 text-center">
+        <p className="text-ink/60">{loadError}</p>
+        <button
+          onClick={loadReports}
+          className="mt-4 rounded-full bg-pine px-6 py-2.5 text-sm font-semibold text-paper hover:bg-pine-dark"
+        >
+          Retry
+        </button>
+      </div>
+    );
 
   return (
     <div>
@@ -64,21 +81,23 @@ const Reports = () => {
             <tbody>
               {reports.map((r) => (
                 <tr key={r._id} className="border-b border-mist last:border-0">
-                  <td className="max-w-[180px] truncate px-5 py-3">{r.campaign_title}</td>
+                  <td title={r.campaign_title} className="max-w-[180px] truncate px-5 py-3">{r.campaign_title}</td>
                   <td className="px-5 py-3 text-ink/60">{r.reporter_name}</td>
-                  <td className="max-w-[240px] px-5 py-3 text-ink/60">{r.reason}</td>
+                  <td title={r.reason} className="max-w-[240px] truncate px-5 py-3 text-ink/60">{r.reason}</td>
                   <td className="px-5 py-3 text-ink/50">{new Date(r.date).toLocaleDateString()}</td>
                   <td className="px-5 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <button
-                        onClick={() => handleSuspend(r.campaign_id)}
-                        className="flex items-center gap-1 rounded-full border border-gold/40 px-3 py-1.5 text-xs font-medium text-gold-dark hover:bg-gold/10"
+                        onClick={() => handleSuspend(r.campaign_id, r.campaign_title)}
+                        aria-label={`Suspend campaign ${r.campaign_title}`}
+                        className="focus-ring flex items-center gap-1 rounded-full border border-gold/40 px-3 py-1.5 text-xs font-medium text-gold-dark hover:bg-gold/10"
                       >
                         <ShieldOff size={13} /> Suspend
                       </button>
                       <button
                         onClick={() => handleDelete(r._id, r.campaign_id)}
-                        className="flex items-center gap-1 rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/5"
+                        aria-label={`Delete campaign ${r.campaign_title}`}
+                        className="focus-ring flex items-center gap-1 rounded-full border border-brick/30 px-3 py-1.5 text-xs font-medium text-brick hover:bg-brick/5"
                       >
                         <Trash2 size={13} /> Delete
                       </button>

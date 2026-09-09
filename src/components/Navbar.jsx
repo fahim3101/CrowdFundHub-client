@@ -40,7 +40,7 @@ const Navbar = () => {
           {user ? (
             <div className="flex items-center gap-4">
               <span className="figures flex items-center gap-1.5 rounded-full bg-mist px-3 py-1.5 text-sm font-semibold text-pine-dark">
-                <Coins size={15} /> {credits}
+                <Coins size={15} /> {credits ?? 0}
               </span>
               <NotificationBell />
               <div className="relative">
@@ -58,11 +58,12 @@ const Navbar = () => {
                     <img
                       src={user.photoURL}
                       alt={user.displayName || 'User'}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       className="h-9 w-9 rounded-full border-2 border-pine/30 object-cover"
                     />
                   ) : (
                     <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-pine/30 bg-mist text-sm font-semibold text-pine">
-                      {user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                      {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
                 </button>
@@ -70,8 +71,9 @@ const Navbar = () => {
                   <div role="menu" className="absolute right-0 mt-2 w-44 rounded-xl border border-mist bg-white p-2 shadow-xl">
                     <p className="truncate px-2 py-1 text-xs text-ink/50">{user.email}</p>
                     <button
+                      role="menuitem"
                       onClick={handleLogout}
-                      className="w-full rounded-lg px-2 py-1.5 text-left text-sm text-brick hover:bg-mist"
+                      className="focus-ring w-full rounded-lg px-2 py-1.5 text-left text-sm text-brick hover:bg-mist"
                     >
                       Log out
                     </button>
@@ -119,8 +121,9 @@ const Navbar = () => {
             {user && <NavLink to="/dashboard" className={linkClass} onClick={() => setOpen(false)}>Dashboard</NavLink>}
             {user ? (
               <>
-                <span className="figures text-sm font-semibold text-pine-dark">Credits: {credits}</span>
-                <button onClick={handleLogout} className="text-left text-sm text-brick">Log out</button>
+                <span className="figures text-sm font-semibold text-pine-dark">Credits: {credits ?? 0}</span>
+                <Link to="/dashboard/profile" onClick={() => setOpen(false)} className={linkClass({ isActive: false })}>My Profile</Link>
+                <button onClick={handleLogout} className="focus-ring rounded-lg text-left text-sm text-brick">Log out</button>
               </>
             ) : (
               <>
